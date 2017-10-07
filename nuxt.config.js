@@ -41,9 +41,6 @@ module.exports = {
         })
       }
       */
-
-      config.output.path = path.resolve(__dirname, './dist')
-      config.output.publicPath = './dist/'
     }
   }
 }
