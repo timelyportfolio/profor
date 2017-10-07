@@ -34,6 +34,8 @@
     },
     data: function() {
       return {
+        articles: [],
+        fulldata: [],
         checkedfilters: []
       }
     },
