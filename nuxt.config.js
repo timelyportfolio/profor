@@ -1,3 +1,5 @@
+var path = require('path');
+
 module.exports = {
   /*
   ** Headers of the page
@@ -39,6 +41,9 @@ module.exports = {
         })
       }
       */
+
+      config.output.path = path.resolve(__dirname, './dist')
+      config.output.publicPath = './dist/'
     }
   }
 }
