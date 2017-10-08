@@ -85,13 +85,13 @@
         //}
       },
       spec_geo: function() {
-        var data = this.filtered.data;
-        var geo = this.filtered.filters_geo
+        var filtered = this.filtered
+        var data = filtered.data
+        var geo = filtered.filters_geo
         var filtered_geo = []
         data.forEach(function(d) {
           d.geo.forEach(function(dd) {
             if(geo.indexOf(dd.subregion) > -1) {
-              debugger
               filtered_geo.push({
                 id: dd.id,
                 region: dd.region,
@@ -226,7 +226,8 @@
               "name": "color",
               "type": "sequential",
               "domain": {"data": "geosum", "field": "size"},
-              "range": "heatmap"
+              "range": "heatmap",
+              "zero": true
             }
           ],
 
