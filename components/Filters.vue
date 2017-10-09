@@ -18,9 +18,9 @@
 <script>
 import { Tree } from 'element-ui'
 import GeoFilters from '../static/geofilters.js'
-// import HabitatFilters from '../habitatfilters.js'
-// import InterventionFilters from '../interventionfilters.js'
-// import OutcomeFilters from '../outcomefilters.js'
+import HabitatFilters from '../static/habitatfilters.js'
+import InterventionFilters from '../static/interventionfilters.js'
+import OutcomeFilters from '../static/outcomefilters.js'
 
 export default {
   components: {
@@ -28,7 +28,7 @@ export default {
   },
   data () {
     return {
-      filters: [GeoFilters()], // ,HabitatFilters(),InterventionFilters(),OutcomeFilters()],
+      filters: [GeoFilters(), HabitatFilters(), InterventionFilters(), OutcomeFilters()],
       defaultProps: {
         children: 'children',
         label: 'name'
