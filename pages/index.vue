@@ -34,6 +34,18 @@
         >
         </VegaGeomap>
       </div>
+      <div class="row align-items-start" style="margin-top:2em;">
+        <div class="col col-md-12">
+          <h5>Intervention by Region</h5>
+          <VegaBarFacet
+            :matrix = "matrix_geoint"
+            x = "ArticleCount"
+            y = "Intervention"
+            facet = "Region"
+          >
+          </VegaBarFacet>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -43,14 +55,17 @@
   import {arrayeq} from '~/assets/utils.js'
 
   import {set, nest} from 'd3-collection'
+  import {merge} from 'd3-array'
 
   import Filters from '~/components/Filters.vue'
   import VegaGeomap from '~/components/VegaGeomap.vue'
+  import VegaBarFacet from '~/components/VegaBarFacet.vue'
 
   export default {
     components: {
       Filters,
-      VegaGeomap
+      VegaGeomap,
+      VegaBarFacet
     },
     created: function() {
       axios.get('articles_profor.json').then(response => {
@@ -81,7 +96,8 @@
         //if(this.checkedgeo.length > 0) {
           return {
             data: this.filterData(this.checkedfilters),
-            filters_geo: this.checkedfilters.filter(dd=>dd.type==='geo').map(dd=>dd.name)
+            filters_geo: this.checkedfilters.filter(dd=>dd.type==='geo').map(dd=>dd.name),
+            filters_int: this.checkedfilters.filter(dd=>dd.type==='intervention').map(dd=>dd.name)
           }
         //}
       },
@@ -273,7 +289,44 @@
           ],
 
         }
-      }      
+      },
+      matrix_geoint: function() {
+        var filtered = this.filtered
+        var data = filtered.data
+        var geo = filtered.filters_geo
+        var int = filtered.filters_int
+        var filtered_geoint = []
+        data.forEach(function(d) {
+          d.geo.forEach(function(dd) {
+            if(geo.indexOf(dd.subregion) > -1) {
+              d.intervention.forEach(function(ddd){
+                if(int.indexOf(ddd.Int_type)) {
+                  filtered_geoint.push({
+                    region: dd.region,
+                    subregion: dd.subregion,
+                    country: dd['Study_country.x'],
+                    intervention: ddd.Int_type,
+                    aid: d.aid
+                  })
+                }
+              })
+            }
+          })
+        })
+debugger
+        var nested = nest()
+          .key(d=>d.region)
+          .key(d=>d.intervention)
+          .rollup(d=>{ return {
+            Region: d[0].region,
+            Intervention: d[0].intervention,
+            //Description: Codes().filter(dc => dc.code=== d[0].int_group)[0].code_def,
+            ArticleCount: set(d.map(dd=>dd.aid)).size()
+          }})
+          .entries(filtered_geoint)
+          .map(d=>d.values.map(dd=>dd.value));
+        return merge(nested)
+      }
     },
     methods: {
       filterData: function(filters) {
@@ -281,7 +334,7 @@
         var habitat = filters.filter(dd=>dd.type==='habitat').map(dd=>dd.code);
         var intervention = filters.filter(dd=>dd.type==='intervention').map(dd=>dd.type_code);
         var outcome = filters.filter(dd=>dd.type==='outcome').map(dd=>dd.code);
-debugger
+
         return this.fulldata
           .filter(
             function(d) {
