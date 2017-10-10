@@ -97,7 +97,7 @@
           return {
             data: this.filterData(this.checkedfilters),
             filters_geo: this.checkedfilters.filter(dd=>dd.type==='geo').map(dd=>dd.name),
-            filters_int: this.checkedfilters.filter(dd=>dd.type==='intervention').map(dd=>dd.name)
+            filters_int: this.checkedfilters.filter(dd=>dd.type==='intervention').map(dd=>dd.type_code)
           }
         //}
       },
@@ -300,6 +300,7 @@
           d.geo.forEach(function(dd) {
             if(geo.indexOf(dd.subregion) > -1) {
               d.intervention.forEach(function(ddd){
+                debugger;
                 if(int.indexOf(ddd.Int_type) >  -1) {
                   filtered_geoint.push({
                     region: dd.region,
