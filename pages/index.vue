@@ -300,7 +300,7 @@
           d.geo.forEach(function(dd) {
             if(geo.indexOf(dd.subregion) > -1) {
               d.intervention.forEach(function(ddd){
-                if(int.indexOf(ddd.Int_type)) {
+                if(int.indexOf(ddd.Int_type) >  -1) {
                   filtered_geoint.push({
                     region: dd.region,
                     subregion: dd.subregion,
