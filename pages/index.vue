@@ -58,6 +58,18 @@
           </VegaBarFacet>
         </div>
       </div>
+      <div class="row align-items-start justify-content-center" style="margin-top:2em;">
+        <div class="col col-md-6 mr-md-auto">
+          <h5>Intervention by Outcome Heatmap</h5>
+          <VegaHeatmap
+            :matrix = "matrix_intout"
+            x = "Outcome"
+            y = "Intervention"
+            z = "ArticleCount"
+          >
+          </VegaHeatmap>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -72,6 +84,7 @@
   import Filters from '~/components/Filters.vue'
   import VegaGeomap from '~/components/VegaGeomap.vue'
   import VegaBarFacet from '~/components/VegaBarFacet.vue'
+  import VegaHeatmap from '~/components/VegaHeatmap.vue'
 
   import Codes from '../static/codes.js'
 
@@ -79,7 +92,8 @@
     components: {
       Filters,
       VegaGeomap,
-      VegaBarFacet
+      VegaBarFacet,
+      VegaHeatmap
     },
     created: function() {
       axios.get('articles_profor.json').then(response => {
@@ -112,7 +126,8 @@
             data: this.filterData(this.checkedfilters),
             filters_geo: this.checkedfilters.filter(dd=>dd.type==='geo').map(dd=>dd.name),
             filters_int: this.checkedfilters.filter(dd=>dd.type==='intervention').map(dd=>dd.type_code),
-            filters_hab: this.checkedfilters.filter(dd=>dd.type==='habitat').map(dd=>dd.code)
+            filters_hab: this.checkedfilters.filter(dd=>dd.type==='habitat').map(dd=>dd.code),
+            filters_out: this.checkedfilters.filter(dd=>dd.type==='outcome').map(dd=>dd.code)
           }
         //}
       },
@@ -379,6 +394,49 @@
           }})
           .entries(filtered_geohab)
           .map(d=>d.values.map(dd=>dd.value));
+        return merge(nested)
+      },
+      matrix_intout: function() {
+        var filtered = this.filtered
+        var data = filtered.data
+        var out = filtered.filters_out
+        var int = filtered.filters_int
+        var filtered_outint = []
+        
+        data.forEach(function(d) {
+          d.intervention.forEach(function(dd) {
+            debugger
+            if(int.indexOf(dd.Int_type) > -1) {
+              d.outcome.forEach(function(ddd){
+                debugger
+                if(out.indexOf(ddd.Out_subtype) >  -1) {
+                  var intervention =  Codes().filter(dc => dc.code === dd.Int_type)[0]
+                  var outcome = Codes().filter(dc => dc.code === ddd.Out_subtype)[0]
+                  filtered_outint.push({
+                    outcome: outcome ? outcome.code_def : ddd.Out_subtype,
+                    intervention: intervention ? intervention.code_def : dd.Int_type,
+                    aid: d.aid
+                  })
+                }
+              })
+            }
+          })
+        })
+        debugger
+
+        var nested = nest()
+          .key(d=>d.intervention)
+          .key(d=>d.outcome)
+          .rollup(d=>{
+            return {
+              Intervention: d[0].intervention,
+              Outcome: d[0].outcome,
+              ArticleCount: set(d.map(dd=>dd.aid)).size()
+            }
+          })
+          .entries(filtered_outint)
+          .map(d=>d.values.map(dd=>dd.value));
+
         return merge(nested)
       }
     },
