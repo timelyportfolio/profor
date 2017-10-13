@@ -59,12 +59,12 @@
         </div>
       </div>
       <div class="row align-items-start justify-content-center" style="margin-top:2em;">
-        <div class="col col-md-6 mr-md-auto">
+        <div class="col col-md-9 mr-md-auto">
           <h5>Intervention by Outcome Heatmap</h5>
           <VegaHeatmap
             :matrix = "matrix_intout"
-            x = "Outcome"
-            y = "Intervention"
+            x = "Intervention"
+            y = "Outcome"
             z = "ArticleCount"
           >
           </VegaHeatmap>
