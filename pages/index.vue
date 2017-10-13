@@ -46,6 +46,18 @@
           </VegaBarFacet>
         </div>
       </div>
+      <div class="row align-items-start" style="margin-top:2em;">
+        <div class="col col-md-12">
+          <h5>Habitat by Region</h5>
+          <VegaBarFacet
+            :matrix = "matrix_geohab"
+            x = "ArticleCount"
+            y = "Habitat"
+            facet = "Region"
+          >
+          </VegaBarFacet>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -60,6 +72,8 @@
   import Filters from '~/components/Filters.vue'
   import VegaGeomap from '~/components/VegaGeomap.vue'
   import VegaBarFacet from '~/components/VegaBarFacet.vue'
+
+  import Codes from '../static/codes.js'
 
   export default {
     components: {
@@ -97,7 +111,8 @@
           return {
             data: this.filterData(this.checkedfilters),
             filters_geo: this.checkedfilters.filter(dd=>dd.type==='geo').map(dd=>dd.name),
-            filters_int: this.checkedfilters.filter(dd=>dd.type==='intervention').map(dd=>dd.type_code)
+            filters_int: this.checkedfilters.filter(dd=>dd.type==='intervention').map(dd=>dd.type_code),
+            filters_hab: this.checkedfilters.filter(dd=>dd.type==='habitat').map(dd=>dd.code)
           }
         //}
       },
@@ -300,13 +315,13 @@
           d.geo.forEach(function(dd) {
             if(geo.indexOf(dd.subregion) > -1) {
               d.intervention.forEach(function(ddd){
-                debugger;
                 if(int.indexOf(ddd.Int_type) >  -1) {
+                  var intervention = Codes().filter(dc => dc.code === ddd.Int_type)[0]
                   filtered_geoint.push({
                     region: dd.region,
                     subregion: dd.subregion,
                     country: dd['Study_country.x'],
-                    intervention: ddd.Int_type,
+                    intervention: intervention ? intervention.code_def : ddd.Int_type,
                     aid: d.aid
                   })
                 }
@@ -314,7 +329,7 @@
             }
           })
         })
-debugger
+
         var nested = nest()
           .key(d=>d.region)
           .key(d=>d.intervention)
@@ -325,6 +340,44 @@ debugger
             ArticleCount: set(d.map(dd=>dd.aid)).size()
           }})
           .entries(filtered_geoint)
+          .map(d=>d.values.map(dd=>dd.value));
+        return merge(nested)
+      },
+      matrix_geohab: function() {
+        var filtered = this.filtered
+        var data = filtered.data
+        var geo = filtered.filters_geo
+        var hab = filtered.filters_hab
+        var filtered_geohab = []
+        data.forEach(function(d) {
+          d.geo.forEach(function(dd) {
+            if(geo.indexOf(dd.subregion) > -1) {
+              d.habitat.forEach(function(ddd){
+                if(hab.indexOf(ddd['Biome.']) >  -1) {
+                  var habitat = Codes().filter(dc => dc.code === ddd['Biome.'])[0]
+                  filtered_geohab.push({
+                    region: dd.region,
+                    subregion: dd.subregion,
+                    country: dd['Study_country.x'],
+                    habitat: habitat ? habitat.code_def : ddd['Biome.'],
+                    aid: d.aid
+                  })
+                }
+              })
+            }
+          })
+        })
+
+        var nested = nest()
+          .key(d=>d.region)
+          .key(d=>d.habitat)
+          .rollup(d=>{ return {
+            Region: d[0].region,
+            Habitat: d[0].habitat,
+            //Description: Codes().filter(dc => dc.code=== d[0].int_group)[0].code_def,
+            ArticleCount: set(d.map(dd=>dd.aid)).size()
+          }})
+          .entries(filtered_geohab)
           .map(d=>d.values.map(dd=>dd.value));
         return merge(nested)
       }
